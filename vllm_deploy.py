@@ -3,20 +3,16 @@ import torch
 torch.multiprocessing.set_start_method("spawn", force=True)
 
 
-import nvidia_smi
-import uvicorn
-from fastapi import FastAPI, Request
-from pydantic import BaseModel
-from transformers import AutoTokenizer
-
-nvidia_smi.nvmlInit()
-GPU_Device_Count = nvidia_smi.nvmlDeviceGetCount()
 import datetime
 import gc
 import logging
 import traceback
 from string import Template
 
+import uvicorn
+from fastapi import FastAPI, Request
+from pydantic import BaseModel
+from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
 
 logging.basicConfig(
@@ -65,19 +61,6 @@ class StatusResponse(BaseModel):
     content: str
 
 
-def log_gpu_usage(str_template):
-    log.info(str_template.substitute(msg="Memory Usage..."))
-    for i in range(GPU_Device_Count):
-        handle = nvidia_smi.nvmlDeviceGetHandleByIndex(i)
-        util = nvidia_smi.nvmlDeviceGetUtilizationRates(handle)
-        mem = nvidia_smi.nvmlDeviceGetMemoryInfo(handle)
-        log.info(
-            str_template.substitute(
-                msg=f"|Device {i}| Mem Free: {mem.free / 1024**3:5.2f}GB / {mem.total / 1024**3:5.2f}GB | gpu-util: {util.gpu / 100.0:3.1%} | gpu-mem: {util.memory / 100.0:3.1%} |"
-            )
-        )
-
-
 @app.post("/generate", response_model=StatusResponse)
 async def generate(request: Request) -> StatusResponse:
     request = await request.json()
@@ -103,13 +86,12 @@ async def generate(request: Request) -> StatusResponse:
             messages, tokenize=False, add_generation_prompt=True
         )
 
-        log_gpu_usage(tp)
         start_time = datetime.datetime.now()
         outputs = llm.generate(input_text, sampling_params)
         end_time = datetime.datetime.now()
         dt = (end_time - start_time).total_seconds()
         log.info(tp.substitute(msg=f"generate time: {dt}s "))
-        log_gpu_usage(tp)
+
         input_size = len(outputs[0].prompt_token_ids)
         log.info(tp.substitute(msg=f"input tokens: {input_size} "))
 
