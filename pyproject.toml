@@ -1,0 +1,22 @@
+[project]
+name = "your_project_name"
+version = "0.1.0"
+description = "FastAPI app using vllm, transformers, torch, etc."
+authors = [
+  { name="Your Name", email="you@example.com" }
+]
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+dependencies = [
+  "torch>=2.0.0",
+  "uvicorn>=0.22.0",
+  "fastapi>=0.95.2",
+  "pydantic>=1.10.7",
+  "transformers>=4.31.0",
+  "vllm>=0.1.4"
+]
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"

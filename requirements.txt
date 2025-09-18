@@ -1,0 +1,6 @@
+torch
+uvicorn
+fastapi
+pydantic
+transformers
+vllm
