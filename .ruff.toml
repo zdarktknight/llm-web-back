@@ -1,0 +1,11 @@
+line-length = 100
+target-version = "py312"
+
+[lint]
+select = ["I"]
+fixable = ["I"]
+
+[lint.isort]
+force-sort-within-sections = true
+known-first-party = ["llm_back"]  # 替换为你项目自己的模块名
+known-third-party = ["torch", "fastapi", "uvicorn", "pydantic", "transformers", "vllm"]

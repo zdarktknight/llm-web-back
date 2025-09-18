@@ -1,22 +1,43 @@
 [project]
-name = "your_project_name"
+name = "llm-back"
 version = "0.1.0"
-description = "FastAPI app using vllm, transformers, torch, etc."
-authors = [
-  { name="Your Name", email="you@example.com" }
-]
-readme = "README.md"
+description = "LLM backend service"
 requires-python = ">=3.12"
-license = { text = "MIT" }
-dependencies = [
-  "torch>=2.0.0",
-  "uvicorn>=0.22.0",
-  "fastapi>=0.95.2",
-  "pydantic>=1.10.7",
-  "transformers>=4.31.0",
-  "vllm>=0.1.4"
+
+[dependency-groups]
+dev = [
+  {include-group = "lint"}
 ]
 
-[build-system]
-requires = ["setuptools>=42", "wheel"]
-build-backend = "setuptools.build_meta"
+lint = [
+    "ruff",
+    "flake8",
+    "pylint",
+    "pre-commit",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py312']
+
+[tool.isort]
+profile = "black"
+known_first_party = ["llm_back"]  # 你的项目包名
+known_third_party = ["torch", "fastapi", "uvicorn", "pydantic", "transformers", "vllm"]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 88
+
+[tool.pylint]
+max-line-length = 100
+disable = [
+    "missing-module-docstring",
+    "missing-function-docstring",
+    "missing-class-docstring",
+    "too-few-public-methods",
+]
+
+[tool.pre-commit]
+# 可以用 pre-commit CLI 管理，但配置还是写在 .pre-commit-config.yaml

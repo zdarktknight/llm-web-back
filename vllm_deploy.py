@@ -6,13 +6,13 @@ torch.multiprocessing.set_start_method("spawn", force=True)
 import datetime
 import gc
 import logging
-import traceback
 from string import Template
+import traceback
 
-import uvicorn
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from transformers import AutoTokenizer
+import uvicorn
 from vllm import LLM, SamplingParams
 
 logging.basicConfig(
@@ -65,12 +65,8 @@ class StatusResponse(BaseModel):
 async def generate(request: Request) -> StatusResponse:
     request = await request.json()
 
-    session_id = (
-        request.get("session_id", "ts") if request.get("session_id", "ts") else "None"
-    )
-    agent_id = (
-        request.get("agent_id", "tt") if request.get("agent_id", "tt") else "None"
-    )
+    session_id = request.get("session_id", "ts") if request.get("session_id", "ts") else "None"
+    agent_id = request.get("agent_id", "tt") if request.get("agent_id", "tt") else "None"
     tp = Template(session_id + "," + agent_id + ":$msg")
 
     try:
@@ -97,9 +93,7 @@ async def generate(request: Request) -> StatusResponse:
 
         output_size = len(outputs[0].outputs[0].token_ids)
         log.info(tp.substitute(msg="----------------"))
-        log.info(
-            tp.substitute(msg=f"output tokens n/s:{output_size} {output_size / dt} ")
-        )
+        log.info(tp.substitute(msg=f"output tokens n/s:{output_size} {output_size / dt} "))
 
         response = outputs[0].outputs[0].text
         log.info(tp.substitute(msg=f"response: {response}"))
