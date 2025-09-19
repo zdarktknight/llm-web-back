@@ -30,7 +30,7 @@ app = FastAPI()
 # fine-tuned qwen 0.5b model
 model_path = "/home/tz/Desktop/bigai/model/0327_qwen_05_merged"
 # fine-tuned qwen 3.0b model
-model_path = "/home/bigue/Desktop/model/Qwen3-8B-FP8"
+model_path = "/home/bigue/Desktop/model/Qwen3-4B"
 print(f"start model: {model_path}")
 
 device = "cuda" if torch.cuda.is_available() else "cpu"

@@ -5,6 +5,14 @@ description = "LLM backend service"
 requires-python = ">=3.12"
 
 [dependency-groups]
+default = [
+  "fastapi",
+  "uvicorn",
+  "pydantic",
+  "vllm",
+  "transformers",
+  "torch",
+]
 dev = [
   {include-group = "lint"}
 ]

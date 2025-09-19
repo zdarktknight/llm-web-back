@@ -2,13 +2,13 @@ import io
 import os
 import sys
 
-import httpx
-import openai
-import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+import httpx
+import openai
+import uvicorn
 
 load_dotenv()  # 加载.env文件
 
