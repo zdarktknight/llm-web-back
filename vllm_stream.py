@@ -1,64 +1,69 @@
-# vllm_stream.py
-import io
-import sys
+import os
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from vllm import SamplingParams
-from vllm.engine.arg_utils import AsyncEngineArgs
-from vllm.sampling_params import RequestOutputKind
-from vllm.v1.engine.async_llm import AsyncLLM
+from transformers import AutoTokenizer
+import uvicorn
+from vllm import LLM, SamplingParams
 
+# 模型路径和参数
+MODEL_PATH = "/home/bigue/Desktop/model/Qwen2.5-0.5B-Instruct"
+GPU_MEMORY_UTILIZATION = 0.7
+
+# 初始化 vLLM 引擎
+llm = LLM(
+    model=MODEL_PATH,
+    gpu_memory_utilization=GPU_MEMORY_UTILIZATION,
+    trust_remote_code=True,  # 推荐加上
+)
+tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+# 初始化 FastAPI
 app = FastAPI()
 
-stream_engine: AsyncLLM = None  # will be initialized in startup
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+# 添加 CORS（可选）
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # 或指定前端域名
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-@app.on_event("startup")
-async def startup_event():
-    global stream_engine
-    engine_args = AsyncEngineArgs(
-        model="/home/bigue/Desktop/model/Qwen2.5-0.5B-Instruct",
-        enforce_eager=True,
-        gpu_memory_utilization=0.7,  # Adjusted to fit your GPU
-    )
-    stream_engine = AsyncLLM.from_engine_args(engine_args)
-
-
-async def stream_response(prompt: str, request_id: str):
-    sampling_params = SamplingParams(
-        max_tokens=100,
-        temperature=0.8,
-        top_p=0.95,
-        seed=42,
-        output_kind=RequestOutputKind.DELTA,
-    )
-
-    async for output in stream_engine.generate(
-        request_id=request_id,
-        prompt=prompt,
-        sampling_params=sampling_params,
-    ):
-        for completion in output.outputs:
-            yield completion.text
-        if output.finished:
-            break
+@app.get("/v1/models")
+async def get_models():
+    # 模拟 OpenAI 的 /v1/models 接口
+    return {
+        "data": [{"id": os.path.basename(MODEL_PATH).lower().replace("_", "-"), "object": "model"}]
+    }
 
 
 @app.post("/api/llm/stream")
-async def llm_stream(request: Request):
-    request = await request.json()
-    session_id = request.get("session_id", "ts")
-    agent_id = request.get("agent_id", "tt")
-    content = request.get("prompt", "")
-    generator = stream_response(content, session_id + "_" + agent_id)
-    return StreamingResponse(generator, media_type="text/plain")
+async def chat_completions(request: Request):
+    data = await request.json()
+    content = data.get("prompt", "")
+    temperature = data.get("temperature", 0.7)
+    max_tokens = data.get("max_tokens", 1024)
+    stream = data.get("stream", False)
+
+    sampling_params = SamplingParams(
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )
+    # log.info(tp.substitute(msg=f"msg: {messages}"))
+    input_text = tokenizer.apply_chat_template(
+        [{"role": "user", "content": content}], tokenize=False, add_generation_prompt=True
+    )
+
+    def stream_generator():
+        results_generator = llm.generate(input_text, sampling_params)
+        for request_output in results_generator:
+            for output in request_output.outputs:
+                yield output.text
+
+    return StreamingResponse(stream_generator(), media_type="text/plain; charset=utf-8")
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=7890)
