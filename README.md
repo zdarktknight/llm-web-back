@@ -34,23 +34,28 @@ MODEL_NAME=gpt-3.5-turbo
 ```
 
 ### 3. Run the backend server
-
+#### 3.1 使用OpenAI API
+启动后端服务
 ```bash
-uvicorn main:app --host 0.0.0.0 --port 7890
+python main.py
+```
+#### 3.2 采用OpenAI API部署自己的模型
+```bash
+python -m vllm.entrypoints.openai.api_server --host xx.x.xxx.xxx --port 7862  --model /home/bigue/Desktop/model/Qwen2.5-0.5B-Instruct --gpu-memory-utilization 0.7
+```
+验证模型是否启动
+```
+curl http://10.1.188.130:7862/v1/models
+```
+启动后端服务
+```
+python main.py
 ```
 
-## API Usage
-
-### POST `/api/llm/stream`
-
-**Request Body:**
-
-```json
-{
-  "prompt": "Your question here"
-}
+#### 3.3 部署自己的模型 (stream mode)
+```bash
+python vllm_stream.py
 ```
-
 **Response:**
 
 - Streams the LLM's response as plain text.
@@ -59,6 +64,5 @@ uvicorn main:app --host 0.0.0.0 --port 7890
 
 - Do **not** expose your API key to the frontend.
 - Make sure your `.env` file is **not** committed to version control.
-- The backend must be running for the frontend to access model services.
 
 ---
