@@ -39,7 +39,8 @@ MODEL_NAME=gpt-3.5-turbo
 ```bash
 python main.py
 ```
-#### 3.2 采用OpenAI API部署自己的模型
+#### 3.2 vllm部署自己的模型-Openai接口
+1. 不调用API, 部署自己的模型, 暴露的接口使用Openai定义的形式
 ```bash
 python -m vllm.entrypoints.openai.api_server --host xx.x.xxx.xxx --port 7862  --model /home/bigue/Desktop/model/Qwen2.5-0.5B-Instruct --gpu-memory-utilization 0.7
 ```
@@ -47,12 +48,18 @@ python -m vllm.entrypoints.openai.api_server --host xx.x.xxx.xxx --port 7862  --
 ```
 curl http://10.1.188.130:7862/v1/models
 ```
-启动后端服务
+2. 因为暴露的接口使用的是Openai定义好的模板，因此可以采用3.1的方式启动后端服务
 ```
 python main.py
 ```
 
-#### 3.3 部署自己的模型 (stream mode)
+#### 3.3 vllm部署自己的模型-自定义接口
+1. 非流式输出的自定义接口
+```bash
+python vllm_deploy.py
+```
+
+2. 流式输出的自定义接口
 ```bash
 python vllm_stream.py
 ```
